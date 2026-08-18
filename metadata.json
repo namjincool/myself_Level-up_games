@@ -1,0 +1,6 @@
+{
+  "name": "LifeRPG - 현실 레벨업 시스템",
+  "description": "현실의 나를 RPG 캐릭터처럼 성장시키는 게임화 자기계발 플랫폼 및 프로덕트 기획서 & 인터랙티브 시뮬레이터",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

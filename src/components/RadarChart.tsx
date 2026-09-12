@@ -23,6 +23,20 @@ export const RadarChart: React.FC<RadarChartProps> = ({ stats, maxLevelReference
   const radius = size * 0.36;
   const totalSides = statKeys.length;
 
+  const getStatNormalized = (stat?: StatInfo) => {
+    const level = Math.max(1, stat?.level || 1);
+    const levelExp = Math.max(0, stat?.currentExp || 0);
+    const nextLevelExp = Math.max(1, stat?.nextLevelExp || 1);
+    const levelProgress = Math.min(1, levelExp / nextLevelExp);
+    const fractionalLevel = level - 1 + levelProgress;
+
+    // Keep a small visible base shape for a new user while allowing every EXP gain
+    // to move the radar before the next integer level is reached. The easing curve
+    // makes early growth visible instead of hiding it inside a 25-level scale.
+    const progressRatio = Math.min(1, fractionalLevel / Math.max(1, maxLevelReference - 1));
+    return Math.min(1, Math.max(0.1, 0.1 + Math.pow(progressRatio, 0.55) * 0.9));
+  };
+
   // Calculate polygon points for grid rings
   const getPolygonPoints = (scale: number) => {
     return statKeys
@@ -39,7 +53,7 @@ export const RadarChart: React.FC<RadarChartProps> = ({ stats, maxLevelReference
   const statPoints = statKeys
     .map((key, i) => {
       const stat = stats[key];
-      const normalized = Math.min(1, Math.max(0.18, (stat?.level || 1) / maxLevelReference));
+      const normalized = getStatNormalized(stat);
       const angle = (Math.PI * 2 * i) / totalSides - Math.PI / 2;
       const x = center + radius * normalized * Math.cos(angle);
       const y = center + radius * normalized * Math.sin(angle);
@@ -92,18 +106,18 @@ export const RadarChart: React.FC<RadarChartProps> = ({ stats, maxLevelReference
           </radialGradient>
         </defs>
 
-        <polygon
-          points={statPoints}
-          fill="url(#statAura)"
-          stroke="#F97316"
-          strokeWidth="2"
-          className="transition-all duration-700 ease-out"
-        />
+          <polygon
+            points={statPoints}
+            fill="url(#statAura)"
+            stroke="#F97316"
+            strokeWidth="2"
+            className="transition-[points] duration-700 ease-out"
+          />
 
         {/* Vertex Points */}
         {statKeys.map((key, i) => {
           const stat = stats[key];
-          const normalized = Math.min(1, Math.max(0.18, (stat?.level || 1) / maxLevelReference));
+          const normalized = getStatNormalized(stat);
           const angle = (Math.PI * 2 * i) / totalSides - Math.PI / 2;
           const x = center + radius * normalized * Math.cos(angle);
           const y = center + radius * normalized * Math.sin(angle);

@@ -1,27 +1,35 @@
 import React, { useState } from 'react';
 import {
   Award,
+  BookMarked,
+  BookOpen,
+  Brain,
+  Code,
   Check,
   Flame,
   Lock,
   Medal,
+  ShieldCheck,
   Sparkles,
+  Target,
   Trophy,
   Zap,
 } from 'lucide-react';
 
 interface Achievement {
   id: string;
-  title: string;
-  name: string;
+  title?: string;
+  name?: string;
   description: string;
   category: string;
-  unlockedTitleReward: string;
-  expReward: number;
+  rewardTitle?: string;
+  unlockedTitleReward?: string;
+  rewardExp?: number;
+  expReward?: number;
   isUnlocked: boolean;
   requiredMetric: number;
   currentMetric: number;
-  unit: string;
+  unit?: string;
   icon: string;
 }
 
@@ -30,6 +38,26 @@ interface AchievementListProps {
   equippedTitle: string;
   onEquipTitle: (title: string) => void;
 }
+
+const achievementIconMap = {
+  Award,
+  BookMarked,
+  BookOpen,
+  Brain,
+  Code,
+  Flame,
+  Medal,
+  ShieldCheck,
+  Sparkles,
+  Target,
+  Trophy,
+  Zap,
+} as const;
+
+const AchievementIcon: React.FC<{ name: string; className?: string }> = ({ name, className = '' }) => {
+  const Icon = achievementIconMap[name as keyof typeof achievementIconMap];
+  return Icon ? <Icon className={className} aria-hidden="true" /> : <Sparkles className={className} aria-hidden="true" />;
+};
 
 export const AchievementList: React.FC<AchievementListProps> = ({
   achievements,
@@ -77,32 +105,40 @@ export const AchievementList: React.FC<AchievementListProps> = ({
         <div className="flex gap-3 flex-wrap">
           {achievements
             .filter((a) => a.isUnlocked)
-            .map((a) => (
-              <div
-                key={a.id}
-                className="flex items-center gap-2.5 px-3 py-2 rounded-xl bg-black/40 border border-orange-500/40 shadow-sm"
-                title={a.name}
-              >
-                <div className="w-8 h-8 rounded-lg bg-orange-500/20 border border-orange-500/50 flex items-center justify-center text-base">
-                  {a.icon}
+            .map((a) => {
+              const rewardTitle = a.rewardTitle ?? a.unlockedTitleReward ?? '칭호 없음';
+              const rewardExp = a.rewardExp ?? a.expReward ?? 0;
+              const displayTitle = a.title ?? a.name ?? '이름 없는 업적';
+              return (
+                <div
+                  key={a.id}
+                  className="flex items-center gap-2.5 px-3 py-2 rounded-xl bg-black/40 border border-orange-500/40 shadow-sm"
+                  title={displayTitle}
+                >
+                  <div className="w-8 h-8 rounded-lg bg-orange-500/20 border border-orange-500/50 flex items-center justify-center text-base text-orange-300">
+                    <AchievementIcon name={a.icon} className="w-4 h-4 shrink-0" />
+                  </div>
+                  <div>
+                    <span className="text-xs font-bold text-white block">[{rewardTitle}]</span>
+                    <span className="text-[10px] text-orange-400 font-mono">+{rewardExp} EXP</span>
+                  </div>
                 </div>
-                <div>
-                  <span className="text-xs font-bold text-white block">[{a.unlockedTitleReward}]</span>
-                  <span className="text-[10px] text-orange-400 font-mono">+{a.expReward} EXP</span>
-                </div>
-              </div>
-            ))}
+              );
+            })}
         </div>
       </div>
 
       {/* Grid of Achievement Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {filtered.map((ach) => {
+          const displayTitle = ach.title ?? ach.name ?? '이름 없는 업적';
+          const rewardTitle = ach.rewardTitle ?? ach.unlockedTitleReward ?? '칭호 없음';
+          const rewardExp = ach.rewardExp ?? ach.expReward ?? 0;
           const progress = Math.min(
             100,
             Math.round((ach.currentMetric / ach.requiredMetric) * 100)
           );
-          const isEquipped = equippedTitle === ach.unlockedTitleReward;
+          const isEquipped = equippedTitle === rewardTitle;
 
           return (
             <div
@@ -122,12 +158,16 @@ export const AchievementList: React.FC<AchievementListProps> = ({
                         : 'bg-black/60 border-white/10 text-slate-600'
                     }`}
                   >
-                    {ach.isUnlocked ? ach.icon : <Lock className="w-5 h-5 text-slate-600" />}
+                    {ach.isUnlocked ? (
+                      <AchievementIcon name={ach.icon} className="w-5 h-5 shrink-0 text-orange-300" />
+                    ) : (
+                      <Lock className="w-5 h-5 text-slate-600" aria-hidden="true" />
+                    )}
                   </div>
 
                   <div>
                     <div className="flex items-center gap-2">
-                      <h4 className="text-sm font-bold text-white">{ach.name}</h4>
+                        <h4 className="text-sm font-bold text-white">{displayTitle}</h4>
                       {ach.isUnlocked && (
                         <span className="px-1.5 py-0.2 rounded text-[10px] font-bold bg-orange-500/20 text-orange-400">
                           UNLOCKED
@@ -136,7 +176,7 @@ export const AchievementList: React.FC<AchievementListProps> = ({
                     </div>
                     <p className="text-xs text-slate-400 mt-1">{ach.description}</p>
                     <span className="text-[11px] font-mono text-orange-400 block mt-1">
-                      보상: [{ach.unlockedTitleReward}] 칭호 + {ach.expReward} EXP
+                      보상: [{rewardTitle}] 칭호 + {rewardExp} EXP
                     </span>
                   </div>
                 </div>
@@ -147,7 +187,7 @@ export const AchievementList: React.FC<AchievementListProps> = ({
                 <div className="flex-1">
                   <div className="flex justify-between text-[10px] font-mono text-slate-400 mb-1">
                     <span>
-                      {ach.currentMetric} / {ach.requiredMetric} {ach.unit}
+                      {ach.currentMetric} / {ach.requiredMetric}{ach.unit ? ` ${ach.unit}` : ''}
                     </span>
                     <span>{progress}%</span>
                   </div>
@@ -163,8 +203,9 @@ export const AchievementList: React.FC<AchievementListProps> = ({
 
                 {ach.isUnlocked && (
                   <button
-                    onClick={() => onEquipTitle(ach.unlockedTitleReward)}
-                    className={`px-3 py-1.5 rounded-xl text-xs font-bold font-mono transition cursor-pointer shrink-0 ${
+                    type="button"
+                    onClick={() => onEquipTitle(rewardTitle)}
+                    className={`achievement-equip-button px-3 py-1.5 rounded-xl text-xs font-bold font-mono transition cursor-pointer shrink-0 ${
                       isEquipped
                         ? 'bg-orange-500 text-black shadow-sm'
                         : 'bg-white/10 hover:bg-white/20 text-white'

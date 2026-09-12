@@ -1,6 +1,6 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import confetti from 'canvas-confetti';
-import { Check, ChevronRight, Flame, Sparkles, X } from 'lucide-react';
+import { Check, ChevronRight, Flame, PauseCircle, PlayCircle, Sparkles, X } from 'lucide-react';
 
 export interface LevelUpEvent {
   statKey: string;
@@ -21,22 +21,40 @@ interface LevelUpModalProps {
 }
 
 export const LevelUpModal: React.FC<LevelUpModalProps> = ({ event, onClose }) => {
+  const [celebrationActive, setCelebrationActive] = useState(true);
+
   useEffect(() => {
-    try {
-      confetti({
-        particleCount: 100,
-        spread: 80,
-        origin: { y: 0.5 },
-        colors: ['#F97316', '#EF4444', '#FFFFFF', '#FCD34D', '#4F46E5'],
-      });
-    } catch (e) {
-      // ignore
+    const reducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    if (!celebrationActive || reducedMotion) {
+      confetti.reset();
+      return;
     }
-  }, []);
+
+    const fire = () => {
+      try {
+        confetti({
+          particleCount: 70,
+          spread: 80,
+          origin: { y: 0.5 },
+          colors: ['#F97316', '#EF4444', '#FFFFFF', '#FCD34D', '#4F46E5'],
+          disableForReducedMotion: true,
+        });
+      } catch {
+        // Visual celebration is optional; the level-up state is not.
+      }
+    };
+
+    fire();
+    const interval = window.setInterval(fire, 900);
+    return () => {
+      window.clearInterval(interval);
+      confetti.reset();
+    };
+  }, [celebrationActive]);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-300">
-      <div className="relative w-full max-w-lg bg-gradient-to-br from-orange-600 via-orange-500 to-red-600 rounded-3xl p-8 overflow-hidden shadow-2xl shadow-orange-950/60 border border-white/20 animate-in zoom-in-95 duration-300 text-white">
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-300">
+      <div className="mobile-sheet relative w-full max-w-lg bg-gradient-to-br from-orange-600 via-orange-500 to-red-600 rounded-t-3xl sm:rounded-3xl p-5 sm:p-8 overflow-y-auto shadow-2xl shadow-orange-950/60 border border-white/20 animate-in zoom-in-95 duration-300 text-white">
         {/* Background Watermark UP */}
         <div className="absolute top-0 right-0 p-6 opacity-15 text-9xl font-black italic select-none pointer-events-none leading-none">
           UP
@@ -44,10 +62,24 @@ export const LevelUpModal: React.FC<LevelUpModalProps> = ({ event, onClose }) =>
 
         {/* Close Button */}
         <button
+          type="button"
           onClick={onClose}
           className="absolute top-4 right-4 p-2 rounded-full text-white/80 hover:text-white hover:bg-black/20 transition z-20 cursor-pointer"
+          aria-label="레벨업 알림 닫기"
+          title="레벨업 알림 닫기"
         >
           <X className="w-5 h-5" />
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setCelebrationActive((active) => !active)}
+          className="absolute right-14 top-4 z-20 inline-flex min-h-9 items-center gap-1.5 rounded-xl border border-white/20 bg-black/15 px-2.5 text-[10px] font-bold text-white/85 transition hover:bg-black/25"
+          aria-pressed={celebrationActive}
+          title={celebrationActive ? '폭죽 멈추기' : '폭죽 다시 보기'}
+        >
+          {celebrationActive ? <PauseCircle className="h-4 w-4" /> : <PlayCircle className="h-4 w-4" />}
+          <span>{celebrationActive ? '폭죽 멈추기' : '폭죽 다시 보기'}</span>
         </button>
 
         <div className="relative z-10 space-y-6">

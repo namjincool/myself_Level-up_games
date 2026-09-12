@@ -1,228 +1,163 @@
 import React, { useState } from 'react';
-import { Award, Check, Sparkles, UserCheck, Zap } from 'lucide-react';
+import { Check, Sparkles, X } from 'lucide-react';
 import { UserProfile } from '../types';
 
 interface OnboardingModalProps {
-  onComplete: (calibratedProfile: Partial<UserProfile>) => void;
+  onComplete: (profile: Partial<UserProfile>) => void;
   onClose: () => void;
+  isRequired?: boolean;
 }
 
-export const OnboardingModal: React.FC<OnboardingModalProps> = ({ onComplete, onClose }) => {
-  const [step, setStep] = useState<number>(1);
-  const [nickname, setNickname] = useState<string>('Alex');
-  const [workoutFreq, setWorkoutFreq] = useState<string>('mid');
-  const [studyFreq, setStudyFreq] = useState<string>('mid');
-  const [focusArea, setFocusArea] = useState<string>('body');
+const focusOptions = [
+  { id: 'body', label: '🏃 신체 / 지구력 / 근력', title: '몸을 깨우는 사람' },
+  { id: 'intellect', label: '🧠 지적 성장 / 코딩 / 독서', title: '지식 탐험가' },
+  { id: 'wealth', label: '💰 금융 / 자산 형성', title: '자산 설계자' },
+  { id: 'mind', label: '🧘 멘탈 / 명상 / 회복력', title: '마음의 수련자' },
+] as const;
+
+export const OnboardingModal: React.FC<OnboardingModalProps> = ({
+  onComplete,
+  onClose,
+  isRequired = false,
+}) => {
+  const [step, setStep] = useState<1 | 2>(1);
+  const [nickname, setNickname] = useState('');
+  const [focusArea, setFocusArea] = useState<(typeof focusOptions)[number]['id']>('body');
+  const [formError, setFormError] = useState<string | null>(null);
 
   const handleFinish = () => {
-    let vit = 8;
-    let end = 8;
-    let intStat = 8;
-    let foc = 8;
-    let men = 8;
-    let fin = 6;
-    let title = 'Master of Persistence';
-
-    if (workoutFreq === 'high') {
-      vit += 6;
-      end += 8;
-    } else if (workoutFreq === 'mid') {
-      vit += 4;
-      end += 5;
+    const normalizedNickname = nickname.trim();
+    if (!normalizedNickname) {
+      setFormError('사용할 닉네임을 입력해 주세요.');
+      setStep(1);
+      return;
     }
 
-    if (studyFreq === 'high') {
-      intStat += 8;
-      foc += 5;
-    } else if (studyFreq === 'mid') {
-      intStat += 5;
-      foc += 3;
-    }
-
-    if (focusArea === 'body') {
-      title = 'Master of Persistence';
-      end += 3;
-    } else if (focusArea === 'intellect') {
-      title = 'Code Ninja';
-      intStat += 3;
-    } else if (focusArea === 'wealth') {
-      title = 'Guardian of Capital';
-      fin += 5;
-    } else if (focusArea === 'mind') {
-      title = 'Zen Master';
-      men += 5;
-    }
-
-    const calculatedPlayerLevel = Math.floor((vit + end + intStat + foc + men + fin) / 4);
-
+    const selectedFocus = focusOptions.find((option) => option.id === focusArea) ?? focusOptions[0];
     onComplete({
-      name: nickname || 'Alex',
-      title,
-      playerLevel: calculatedPlayerLevel,
+      name: normalizedNickname,
+      title: selectedFocus.title,
+      playerLevel: 1,
+      totalExp: 0,
+      currentLevelExp: 0,
+      nextLevelExp: 100,
+      rankTier: 'Bronze',
+      unlockedTitles: ['첫 걸음'],
     });
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in">
-      <div className="relative w-full max-w-lg overflow-hidden rounded-3xl bg-[#050608] border border-orange-500/40 p-6 sm:p-7 shadow-2xl space-y-5 text-white">
-        <div className="flex items-center justify-between border-b border-white/10 pb-3">
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/80 p-0 backdrop-blur-md sm:items-center sm:p-4">
+      <div className="mobile-sheet relative w-full max-w-lg overflow-y-auto rounded-t-3xl border border-orange-500/40 bg-[#050608] p-4 text-white shadow-2xl sm:rounded-3xl sm:p-7">
+        <div className="flex items-center justify-between border-b border-white/10 pb-4">
           <div className="flex items-center gap-2.5">
-            <div className="p-2 rounded-xl bg-orange-500/20 border border-orange-500/40 text-orange-400">
-              <Sparkles className="w-4 h-4" />
+            <div className="rounded-xl border border-orange-500/40 bg-orange-500/20 p-2 text-orange-400">
+              <Sparkles className="h-4 w-4" />
             </div>
-            <h2 className="text-base font-bold text-white uppercase tracking-tight">
-              CHARACTER CALIBRATION
-            </h2>
+            <div>
+              <h2 className="text-base font-bold tracking-tight">나만의 LifeRPG 시작하기</h2>
+              <p className="mt-0.5 text-[11px] text-slate-500">기록을 시작하기 위한 최소 설정</p>
+            </div>
           </div>
-          <span className="text-xs font-mono font-bold text-orange-400">
-            STEP {step} / 3
-          </span>
+          <div className="flex items-center gap-2">
+            <span className="font-mono text-xs font-bold text-orange-400">{step} / 2</span>
+            {!isRequired && (
+              <button
+                type="button"
+                onClick={onClose}
+                className="touch-target rounded-xl p-2 text-slate-400 transition hover:bg-white/10 hover:text-white"
+                aria-label="온보딩 닫기"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            )}
+          </div>
         </div>
 
-        {step === 1 && (
-          <div className="space-y-4">
+        {step === 1 ? (
+          <div className="space-y-5 pt-5">
             <div>
-              <label className="text-xs font-bold text-slate-400 uppercase tracking-widest block mb-1.5">
-                Player Nickname
-              </label>
-              <input
-                type="text"
-                value={nickname}
-                onChange={(e) => setNickname(e.target.value)}
-                placeholder="예: Alex, Neo, 김성장"
-                className="w-full bg-black/60 border border-white/15 rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none focus:border-orange-500 font-mono font-bold"
-              />
+              <p className="text-sm font-semibold text-white">지금부터 실제 기록으로 성장합니다.</p>
+              <p className="mt-2 text-sm leading-6 text-slate-400">
+                예시 기록이나 보정 레벨 없이 Lv.1, EXP 0, 활동 0에서 시작합니다.
+              </p>
             </div>
 
             <div>
-              <label className="text-xs font-bold text-slate-400 uppercase tracking-widest block mb-1.5">
-                Q1. 주간 운동 및 활동 빈도는 어떻게 되시나요?
+              <label htmlFor="nickname" className="mb-2 block text-xs font-bold uppercase tracking-widest text-slate-400">
+                사용할 닉네임
               </label>
-              <div className="space-y-2">
-                {[
-                  { id: 'low', label: '운동을 거의 하지 않음 (기초 체력 충전)' },
-                  { id: 'mid', label: '주 1~2회 가벼운 러닝 / 헬스 / 산책' },
-                  { id: 'high', label: '주 3~5회 이상 규칙적인 운동 매니아' },
-                ].map((opt) => (
-                  <button
-                    key={opt.id}
-                    type="button"
-                    onClick={() => setWorkoutFreq(opt.id)}
-                    className={`w-full p-3 rounded-xl border text-left text-xs transition cursor-pointer ${
-                      workoutFreq === opt.id
-                        ? 'bg-orange-500/20 border-orange-500 text-white font-bold'
-                        : 'bg-white/5 border-white/10 text-slate-300 hover:bg-white/10'
-                    }`}
-                  >
-                    {opt.label}
-                  </button>
-                ))}
-              </div>
+              <input
+                id="nickname"
+                type="text"
+                inputMode="text"
+                value={nickname}
+                onChange={(event) => {
+                  setNickname(event.target.value);
+                  if (formError) setFormError(null);
+                }}
+                placeholder="예: 민수, 성장러, Alex"
+                autoFocus
+                maxLength={24}
+                className="w-full rounded-xl border border-white/15 bg-black/60 px-4 py-3 text-sm font-bold text-white outline-none transition focus:border-orange-500"
+              />
+              {formError && <p className="mt-2 text-xs text-red-300" role="alert">{formError}</p>}
             </div>
 
             <button
+              type="button"
               onClick={() => setStep(2)}
-              className="w-full h-12 rounded-xl font-bold text-xs bg-orange-500 hover:bg-orange-400 text-black shadow-[0_0_15px_rgba(249,115,22,0.3)] transition cursor-pointer uppercase tracking-wider font-mono"
+              className="h-12 w-full rounded-xl bg-orange-500 text-xs font-black tracking-wide text-black shadow-[0_0_15px_rgba(249,115,22,0.3)] transition hover:bg-orange-400"
             >
-              NEXT QUESTION (2/3) &rarr;
+              다음: 성장 방향 선택
             </button>
           </div>
-        )}
-
-        {step === 2 && (
-          <div className="space-y-4">
+        ) : (
+          <div className="space-y-5 pt-5">
             <div>
-              <label className="text-xs font-bold text-slate-400 uppercase tracking-widest block mb-1.5">
-                Q2. 독서, 코딩, 어학 등 지적 자기계발 시간은?
-              </label>
-              <div className="space-y-2">
-                {[
-                  { id: 'low', label: '하루 15분 미만 / 비정기적' },
-                  { id: 'mid', label: '하루 30분~1시간 집중 학습' },
-                  { id: 'high', label: '하루 2시간 이상 깊은 몰입 (Deep Work)' },
-                ].map((opt) => (
-                  <button
-                    key={opt.id}
-                    type="button"
-                    onClick={() => setStudyFreq(opt.id)}
-                    className={`w-full p-3 rounded-xl border text-left text-xs transition cursor-pointer ${
-                      studyFreq === opt.id
-                        ? 'bg-orange-500/20 border-orange-500 text-white font-bold'
-                        : 'bg-white/5 border-white/10 text-slate-300 hover:bg-white/10'
-                    }`}
-                  >
-                    {opt.label}
-                  </button>
-                ))}
-              </div>
+              <p className="text-sm font-semibold text-white">어떤 방향의 기록을 먼저 쌓을까요?</p>
+              <p className="mt-2 text-sm leading-6 text-slate-400">
+                이 선택은 프로필 방향만 정합니다. 레벨과 EXP는 실제 행동을 기록해야 올라갑니다.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+              {focusOptions.map((option) => (
+                <button
+                  key={option.id}
+                  type="button"
+                  onClick={() => setFocusArea(option.id)}
+                  className={`rounded-xl border p-3 text-left text-sm transition ${
+                    focusArea === option.id
+                      ? 'border-orange-500 bg-orange-500/20 font-bold text-white'
+                      : 'border-white/10 bg-white/5 text-slate-300 hover:bg-white/10'
+                  }`}
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
+
+            <div className="rounded-xl border border-orange-500/20 bg-orange-500/5 p-3 text-xs leading-5 text-slate-400">
+              저장 후 홈 화면에서 <span className="font-bold text-orange-300">첫 활동 기록하기</span>를 누르고,
+              오늘 실제로 한 행동을 입력하면 성장 그래프가 시작됩니다.
             </div>
 
             <div className="flex gap-2">
               <button
+                type="button"
                 onClick={() => setStep(1)}
-                className="w-1/3 h-12 rounded-xl font-bold text-xs bg-white/10 text-slate-300 hover:bg-white/20 transition cursor-pointer uppercase tracking-wider font-mono"
+                className="h-12 w-1/3 rounded-xl bg-white/10 text-xs font-bold text-slate-300 transition hover:bg-white/20"
               >
-                &larr; BACK
+                이전
               </button>
               <button
-                onClick={() => setStep(3)}
-                className="w-2/3 h-12 rounded-xl font-bold text-xs bg-orange-500 hover:bg-orange-400 text-black shadow-[0_0_15px_rgba(249,115,22,0.3)] transition cursor-pointer uppercase tracking-wider font-mono"
-              >
-                FINAL QUESTION (3/3) &rarr;
-              </button>
-            </div>
-          </div>
-        )}
-
-        {step === 3 && (
-          <div className="space-y-4">
-            <div>
-              <label className="text-xs font-bold text-slate-400 uppercase tracking-widest block mb-1.5">
-                Q3. 지금 가장 강력하게 키우고 싶은 나의 핵심 영역은?
-              </label>
-              <div className="grid grid-cols-2 gap-2">
-                {[
-                  { id: 'body', label: '🏃 신체 / 지구력 / 근력' },
-                  { id: 'intellect', label: '🧠 지적 지능 / 코딩 / 독서' },
-                  { id: 'wealth', label: '💰 금융 지능 / 자산 형성' },
-                  { id: 'mind', label: '🧘 멘탈 / 명상 / 회복력' },
-                ].map((opt) => (
-                  <button
-                    key={opt.id}
-                    type="button"
-                    onClick={() => setFocusArea(opt.id)}
-                    className={`p-3 rounded-xl border text-left text-xs transition cursor-pointer ${
-                      focusArea === opt.id
-                        ? 'bg-orange-500/20 border-orange-500 text-white font-bold shadow-sm'
-                        : 'bg-white/5 border-white/10 text-slate-300 hover:bg-white/10'
-                    }`}
-                  >
-                    {opt.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className="p-3 bg-black/40 rounded-xl border border-white/10 text-xs text-slate-400">
-              <span className="text-orange-400 font-bold block mb-0.5 font-mono">
-                INITIAL CALIBRATION COMPLETE:
-              </span>
-              모든 스탯이 일률적으로 Lv.1에서 시작하지 않고 실제 습관에 맞춰 최적화되어 시작됩니다.
-            </div>
-
-            <div className="flex gap-2">
-              <button
-                onClick={() => setStep(2)}
-                className="w-1/3 h-12 rounded-xl font-bold text-xs bg-white/10 text-slate-300 hover:bg-white/20 transition cursor-pointer uppercase tracking-wider font-mono"
-              >
-                &larr; BACK
-              </button>
-              <button
+                type="button"
                 onClick={handleFinish}
-                className="w-2/3 h-12 rounded-xl font-bold text-xs bg-orange-500 hover:bg-orange-400 text-black shadow-[0_0_15px_rgba(249,115,22,0.4)] transition flex items-center justify-center gap-1.5 cursor-pointer uppercase tracking-wider font-mono"
+                className="flex h-12 w-2/3 items-center justify-center gap-2 rounded-xl bg-orange-500 text-xs font-black text-black shadow-[0_0_15px_rgba(249,115,22,0.4)] transition hover:bg-orange-400"
               >
-                <Check className="w-4 h-4 stroke-[3]" />
-                <span>COMPLETE &amp; INITIALIZE</span>
+                <Check className="h-4 w-4" />
+                프로필 저장하고 시작하기
               </button>
             </div>
           </div>

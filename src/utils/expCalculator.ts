@@ -119,17 +119,15 @@ export function calculateActivityExp(input: ExpCalculationInput): ExpCalculation
     currentDayAmountSoFar = 0,
   } = input;
 
-  // 1. Calculate diminishing returns for anti-spam abuse
-  let effectiveAmount = amount;
-  let diminishingFactor = 1.0;
-  const projectedTotal = currentDayAmountSoFar + amount;
-
-  if (maxDailyCapAmount > 0 && projectedTotal > maxDailyCapAmount) {
-    const regularAmount = Math.max(0, maxDailyCapAmount - currentDayAmountSoFar);
-    const excessAmount = projectedTotal - maxDailyCapAmount;
-    effectiveAmount = regularAmount + excessAmount * 0.4; // 60% penalty on excess
-    diminishingFactor = Math.round((effectiveAmount / amount) * 100) / 100;
-  }
+  // 1. Hard daily reward boundary. A penalty still granting EXP forever is
+  // exploitable, so no amount beyond the local daily cap can produce reward.
+  const remainingAmount = maxDailyCapAmount > 0
+    ? Math.max(0, maxDailyCapAmount - currentDayAmountSoFar)
+    : amount;
+  const effectiveAmount = Math.min(Math.max(0, amount), remainingAmount);
+  const diminishingFactor = amount > 0
+    ? Math.round((effectiveAmount / amount) * 100) / 100
+    : 0;
 
   const rawBase = Math.round(effectiveAmount * baseExpPerUnit);
 
@@ -146,14 +144,13 @@ export function calculateActivityExp(input: ExpCalculationInput): ExpCalculation
 
   // 5. Fixed bonus points
   let bonusExp = 0;
-  if (isFirstTime) bonusExp += 50;
-  if (isPersonalBest) bonusExp += 80;
+  if (effectiveAmount > 0 && isFirstTime) bonusExp += 50;
+  if (effectiveAmount > 0 && isPersonalBest) bonusExp += 80;
 
   // Total EXP calculation
-  const totalExp = Math.max(
-    10,
-    Math.round(afterDifficulty * streakMultiplier * verifiedMultiplier + bonusExp)
-  );
+  const totalExp = effectiveAmount > 0
+    ? Math.max(10, Math.round(afterDifficulty * streakMultiplier * verifiedMultiplier + bonusExp))
+    : 0;
 
   // Stat EXP distribution (70% primary stat, 30% secondary stat)
   const primaryExp = Math.round(totalExp * 0.7);

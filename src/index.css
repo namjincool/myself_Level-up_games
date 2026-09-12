@@ -1,11 +1,108 @@
 @import "tailwindcss";
 
 @layer base {
+:root {
+    color-scheme: dark;
+    font-family: Inter, Pretendard, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    background: #08090d;
+  }
+
+  html {
+    min-height: 100%;
+    background: #08090d;
+    overscroll-behavior-y: none;
+    scroll-padding-bottom: calc(7rem + env(safe-area-inset-bottom));
+  }
+
   body {
-    background-color: #050608;
+    background-color: #08090d;
     color: #e2e8f0;
-    min-height: 100vh;
+    min-height: 100dvh;
+    margin: 0;
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    overscroll-behavior-y: none;
+    -webkit-font-smoothing: antialiased;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  :lang(ko) {
+    word-break: keep-all;
+  }
+
+  button,
+  a,
+  input,
+  select,
+  textarea {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+button {
+    touch-action: manipulation;
+  }
+
+  button:focus-visible,
+  a:focus-visible,
+  input:focus-visible,
+  select:focus-visible,
+  textarea:focus-visible,
+  [tabindex]:focus-visible {
+    outline: 2px solid #a78bfa;
+    outline-offset: 2px;
+  }
+
+  input[type='number']::-webkit-outer-spin-button,
+  input[type='number']::-webkit-inner-spin-button {
+    margin: 0;
+    -webkit-appearance: none;
+  }
+
+  input[type='number'] {
+    appearance: textfield;
+  }
+}
+
+#root {
+  min-height: 100dvh;
+}
+
+.mobile-topbar {
+  padding-top: calc(0.75rem + env(safe-area-inset-top));
+}
+
+.mobile-bottom-nav {
+  padding-bottom: calc(0.75rem + env(safe-area-inset-bottom));
+}
+
+.mobile-sheet {
+  max-height: min(92dvh, 760px);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.touch-target {
+  min-width: 44px;
+  min-height: 44px;
+}
+
+.achievement-equip-button {
+  scroll-margin-bottom: calc(7rem + env(safe-area-inset-bottom));
+}
+
+@media (pointer: coarse) {
+  button,
+  [role="button"] {
+    min-height: 44px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
 }
 
@@ -24,7 +121,7 @@
 
 .glass-card-hover:hover {
   background-color: rgba(255, 255, 255, 0.05);
-  border-color: rgba(249, 115, 22, 0.3);
+  border-color: rgba(139, 92, 246, 0.3);
 }
 
 /* Custom sleek scrollbars */
@@ -33,12 +130,191 @@
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: rgba(5, 6, 8, 0.8);
+  background: rgba(8, 9, 13, 0.8);
 }
 ::-webkit-scrollbar-thumb {
   background: rgba(255, 255, 255, 0.15);
   border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(249, 115, 22, 0.4);
+  background: rgba(139, 92, 246, 0.45);
+}
+
+/* Linear-inspired admin console skin. Utility overrides stay scoped to the
+   application shell so feature logic and component APIs remain untouched. */
+.saas-shell {
+  --console-surface: #0d0f15;
+  --console-surface-raised: #11131b;
+  --console-border: rgba(255, 255, 255, 0.075);
+  --console-border-active: rgba(167, 139, 250, 0.3);
+  --console-accent: #a78bfa;
+  background:
+    linear-gradient(rgba(255, 255, 255, 0.012) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.012) 1px, transparent 1px),
+    #08090d;
+  background-size: 36px 36px;
+}
+
+.app-ambient {
+  opacity: 0.8;
+}
+
+.admin-sidebar {
+  box-shadow: 18px 0 50px rgba(0, 0, 0, 0.12);
+}
+
+.sidebar-nav-item {
+  display: flex;
+  width: 100%;
+  min-height: 38px;
+  align-items: center;
+  gap: 0.65rem;
+  border: 1px solid transparent;
+  border-radius: 0.5rem;
+  padding: 0.5rem 0.7rem;
+  color: #737b8c;
+  font-size: 0.75rem;
+  font-weight: 550;
+  text-align: left;
+  transition: 140ms ease;
+}
+
+.sidebar-nav-item:hover {
+  background: rgba(255, 255, 255, 0.035);
+  color: #d7dbe4;
+}
+
+.sidebar-nav-item.is-active {
+  border-color: rgba(167, 139, 250, 0.16);
+  background: rgba(124, 58, 237, 0.11);
+  color: #ddd6fe;
+  box-shadow: inset 2px 0 #8b5cf6;
+}
+
+.metric-chip {
+  display: flex;
+  min-height: 34px;
+  align-items: center;
+  gap: 0.45rem;
+  border: 1px solid var(--console-border);
+  border-radius: 0.5rem;
+  background: rgba(255, 255, 255, 0.025);
+  padding: 0.35rem 0.65rem;
+  font-size: 0.6875rem;
+}
+
+.metric-chip strong {
+  color: #e8eaf0;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.6875rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.daily-brief {
+  width: calc(100% - 1.5rem);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.24), inset 0 1px rgba(255, 255, 255, 0.02);
+}
+
+.admin-panel {
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.24), inset 0 1px rgba(255, 255, 255, 0.018);
+}
+
+/* Normalize the existing game-themed cards into compact admin surfaces. */
+.saas-shell [class*="rounded-2xl"][class*="border-white/10"][class*="bg-white/5"],
+.saas-shell [class*="rounded-2xl"][class*="border-white/10"][class*="bg-black/"],
+.saas-shell [class*="rounded-2xl"][class*="backdrop-blur"] {
+  border-color: var(--console-border) !important;
+  border-radius: 0.75rem !important;
+  background-color: rgba(13, 15, 21, 0.92) !important;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.22) !important;
+  backdrop-filter: none !important;
+}
+
+.saas-shell [class*="rounded-xl"][class*="bg-black/40"],
+.saas-shell [class*="rounded-xl"][class*="bg-black/50"],
+.saas-shell [class*="rounded-xl"][class*="bg-black/60"] {
+  background-color: rgba(5, 6, 10, 0.7) !important;
+  border-color: var(--console-border) !important;
+}
+
+/* Indigo replaces the former orange HUD accent throughout legacy panels. */
+.saas-shell [class*="text-orange-"] {
+  color: #a78bfa !important;
+}
+
+.saas-shell [class*="bg-orange-500"] {
+  background-color: #7c3aed !important;
+  color: #fff !important;
+}
+
+.saas-shell [class*="hover:bg-orange-400"]:hover {
+  background-color: #8b5cf6 !important;
+}
+
+.saas-shell [class*="bg-orange-500/20"] {
+  background-color: rgba(124, 58, 237, 0.14) !important;
+}
+
+.saas-shell [class*="bg-orange-500/15"],
+.saas-shell [class*="bg-orange-500/10"],
+.saas-shell [class*="bg-orange-500/5"] {
+  background-color: rgba(124, 58, 237, 0.09) !important;
+}
+
+.saas-shell [class*="border-orange-"] {
+  border-color: rgba(167, 139, 250, 0.28) !important;
+}
+
+.saas-shell [class*="focus:border-orange-"]:focus,
+.saas-shell [class*="focus:ring-orange-"]:focus {
+  border-color: #8b5cf6 !important;
+  --tw-ring-color: rgba(139, 92, 246, 0.45) !important;
+}
+
+.saas-shell [class*="from-orange-500"] {
+  --tw-gradient-from: #7c3aed var(--tw-gradient-from-position) !important;
+  --tw-gradient-to: rgb(124 58 237 / 0) var(--tw-gradient-to-position) !important;
+}
+
+.saas-shell [class*="to-amber-400"] {
+  --tw-gradient-to: #818cf8 var(--tw-gradient-to-position) !important;
+}
+
+.saas-shell [class*="shadow-[0_0"] {
+  box-shadow: none !important;
+}
+
+.saas-shell button,
+.saas-shell input,
+.saas-shell select,
+.saas-shell textarea {
+  font: inherit;
+}
+
+.saas-shell button:not(:disabled) {
+  cursor: pointer;
+}
+
+.saas-shell button:disabled {
+  cursor: not-allowed;
+}
+
+@media (min-width: 1024px) {
+  .saas-shell > header {
+    min-height: 64px;
+  }
+
+  .daily-brief {
+    width: calc(100% - 4rem);
+  }
+}
+
+@media (max-width: 639px) {
+  .daily-brief {
+    margin-top: 0.75rem;
+  }
+
+  .mobile-section-tabs button {
+    min-width: 0;
+  }
 }

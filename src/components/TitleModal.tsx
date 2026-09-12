@@ -15,8 +15,8 @@ export const TitleModal: React.FC<TitleModalProps> = ({
   onClose,
 }) => {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in">
-      <div className="relative w-full max-w-sm rounded-3xl bg-[#050608] border border-orange-500/40 p-6 shadow-2xl space-y-4 text-white">
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/80 backdrop-blur-md animate-in fade-in">
+      <div className="mobile-sheet relative w-full max-w-sm rounded-t-3xl sm:rounded-3xl bg-[#050608] border border-orange-500/40 p-4 sm:p-6 shadow-2xl space-y-4 text-white">
         <div className="flex items-center justify-between border-b border-white/10 pb-3">
           <div className="flex items-center gap-2">
             <Award className="w-4 h-4 text-orange-400" />
@@ -24,7 +24,7 @@ export const TitleModal: React.FC<TitleModalProps> = ({
               EQUIPPED TITLE SELECTOR
             </h3>
           </div>
-          <button onClick={onClose} className="text-slate-400 hover:text-white cursor-pointer">
+          <button type="button" onClick={onClose} className="touch-target text-slate-400 hover:text-white cursor-pointer" aria-label="칭호 선택 창 닫기" title="칭호 선택 창 닫기">
             <X className="w-4 h-4" />
           </button>
         </div>

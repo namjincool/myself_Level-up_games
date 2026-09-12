@@ -8,7 +8,6 @@ import {
   Flame,
   Footprints,
   HeartHandshake,
-  Shield,
   Sparkles,
   Target,
   TrendingUp,
@@ -17,22 +16,25 @@ import {
   Share2,
   Zap,
 } from 'lucide-react';
-import { CoreStatKey, SubSkill, UserProfile } from '../types';
+import { ActivityLog, CoreStatKey, SubSkill, UserProfile } from '../types';
 import { getTierColor } from '../utils/expCalculator';
+import { GrowthTimeline } from './GrowthTimeline';
 import { RadarChart } from './RadarChart';
 
 interface StatusWindowProps {
   profile: UserProfile;
-  onOpenLogger: () => void;
+  activityLogs: ActivityLog[];
+  onOpenLogger: (statKey?: CoreStatKey) => void;
   onOpenTitles: () => void;
 }
 
 export const StatusWindow: React.FC<StatusWindowProps> = ({
   profile,
+  activityLogs,
   onOpenLogger,
   onOpenTitles,
 }) => {
-  const [expandedStat, setExpandedStat] = useState<CoreStatKey | null>('END');
+  const [expandedStat, setExpandedStat] = useState<CoreStatKey | null>(null);
   const [viewMode, setViewMode] = useState<'radar' | 'cards'>('radar');
 
   const getStatBarColor = (key: CoreStatKey) => {
@@ -82,6 +84,30 @@ export const StatusWindow: React.FC<StatusWindowProps> = ({
 
   return (
     <div className="space-y-6">
+      {profile.totalExp === 0 && Object.keys(profile.subSkills).length === 0 && (
+        <div className="rounded-2xl border border-orange-500/30 bg-gradient-to-br from-orange-500/15 via-white/5 to-indigo-500/10 p-5 shadow-lg">
+          <div className="flex items-start gap-3">
+            <div className="mt-0.5 rounded-xl bg-orange-500/20 p-2 text-orange-300">
+              <Zap className="h-5 w-5" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-orange-300">시작 안내</p>
+              <h2 className="mt-1 text-lg font-black text-white">첫 활동을 기록해 보세요</h2>
+              <p className="mt-1 text-sm leading-6 text-slate-400">
+                오늘 한 일을 하나만 입력하면 나만의 EXP와 성장 기록이 시작됩니다.
+              </p>
+              <button
+                type="button"
+                onClick={onOpenLogger}
+                className="mt-4 min-h-11 rounded-xl bg-orange-500 px-4 text-xs font-black tracking-wide text-black shadow-[0_0_16px_rgba(249,115,22,0.35)] transition hover:bg-orange-400"
+              >
+                첫 활동 기록하기
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* 1. Immersive Hero Profile Card */}
       <div className="bg-white/5 border border-white/10 rounded-2xl p-6 backdrop-blur-md relative overflow-hidden shadow-xl">
         <div className="absolute top-0 right-0 w-64 h-64 bg-orange-500/10 rounded-full blur-3xl pointer-events-none" />
@@ -152,6 +178,8 @@ export const StatusWindow: React.FC<StatusWindowProps> = ({
           </div>
         </div>
       </div>
+
+      <GrowthTimeline activityLogs={activityLogs} profile={profile} />
 
       {/* 2. Core Attributes Grid & Radar */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
@@ -342,7 +370,7 @@ export const StatusWindow: React.FC<StatusWindowProps> = ({
 
                       <div className="pt-2 flex justify-end">
                         <button
-                          onClick={onOpenLogger}
+                          onClick={() => onOpenLogger(key)}
                           className="text-xs font-bold text-orange-400 hover:text-orange-300 flex items-center gap-1 transition"
                         >
                           + RECORD ACTIVITY FOR THIS STAT &rarr;

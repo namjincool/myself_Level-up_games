@@ -1,28 +1,55 @@
 import React, { useState } from 'react';
 import {
   Award,
+  BookOpen,
+  Brain,
   Calendar,
   Check,
   ChevronRight,
   Clock,
-  Coins,
+  Dumbbell,
   Flame,
+  Footprints,
   Plus,
   Shield,
   Sparkles,
   Swords,
+  Target,
+  Users,
   Zap,
+  type LucideIcon,
 } from 'lucide-react';
+import { CORE_STATS_META } from '../data/categories';
+import { getWeekdayLabel } from '../data/dailyQuests';
 import { Quest } from '../types';
+import { formatUnitLabel } from '../utils/questProgress';
 
 interface QuestListProps {
   quests: Quest[];
+  streakShieldCount: number;
   onClaimQuest: (questId: string) => void;
   onStartQuestAction: (quest: Quest) => void;
 }
 
+const QUEST_ICON_MAP: Record<string, LucideIcon> = {
+  Award,
+  BookOpen,
+  Brain,
+  Calendar,
+  Dumbbell,
+  Flame,
+  Footprints,
+  Shield,
+  Sparkles,
+  Swords,
+  Target,
+  Users,
+  Zap,
+};
+
 export const QuestList: React.FC<QuestListProps> = ({
   quests,
+  streakShieldCount,
   onClaimQuest,
   onStartQuestAction,
 }) => {
@@ -53,8 +80,12 @@ export const QuestList: React.FC<QuestListProps> = ({
             <h2 className="text-base font-bold text-white tracking-tight uppercase">
               MISSION QUEST LOG
             </h2>
-            <p className="text-xs text-slate-400">
-              규칙적인 일일·주간 퀘스트를 완료하여 대량의 보너스 경험치를 획득하세요.
+            <p className="text-xs leading-5 text-slate-400">
+              {questTab === 'daily'
+                ? filteredQuests[0]
+                  ? `${getWeekdayLabel(filteredQuests[0].dayOfWeek)}의 퀘스트입니다. 평일마다 목표가 달라집니다.`
+                  : '토·일은 주중 퀘스트를 쉬고 다음 월요일에 새 목표가 열립니다.'
+                : '규칙적인 퀘스트를 완료하고 보상과 능력치 EXP를 확인하세요.'}
             </p>
           </div>
         </div>
@@ -103,11 +134,19 @@ export const QuestList: React.FC<QuestListProps> = ({
           </div>
 
           <div className="space-y-3">
-            {filteredQuests.map((quest) => {
+            {filteredQuests.length === 0 ? (
+              <div className="rounded-2xl border border-dashed border-white/15 bg-black/20 px-4 py-10 text-center">
+                <Calendar className="mx-auto h-8 w-8 text-slate-600" aria-hidden="true" />
+                <p className="mt-3 text-sm font-semibold text-slate-300">오늘은 일일 퀘스트 휴식일입니다.</p>
+                <p className="mt-1 text-xs leading-5 text-slate-500">주간 퀘스트는 언제든 계속 진행할 수 있습니다.</p>
+              </div>
+            ) : filteredQuests.map((quest) => {
               const progress = Math.min(
                 100,
                 Math.round((quest.currentAmount / quest.targetAmount) * 100)
               );
+              const QuestIcon = QUEST_ICON_MAP[quest.icon] || Sparkles;
+              const rewardStat = CORE_STATS_META[quest.statReward];
 
               return (
                 <div
@@ -120,8 +159,12 @@ export const QuestList: React.FC<QuestListProps> = ({
                       : 'bg-white/5 border-white/10 hover:border-white/20'
                   }`}
                 >
-                  <div className="space-y-1.5 flex-1">
-                    <div className="flex items-center gap-2">
+                  <div className="flex min-w-0 flex-1 items-start gap-3">
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-orange-500/30 bg-orange-500/10 text-orange-300">
+                      <QuestIcon className="h-4 w-4" aria-hidden="true" />
+                    </div>
+                    <div className="min-w-0 flex-1 space-y-1.5">
+                    <div className="flex items-start gap-2">
                       <div
                         className={`w-5 h-5 rounded border flex items-center justify-center text-xs shrink-0 ${
                           quest.isCompleted
@@ -140,17 +183,17 @@ export const QuestList: React.FC<QuestListProps> = ({
                             : 'text-white'
                         }`}
                       >
-                        {quest.title}
+                        <span className="break-words">{quest.title}</span>
                       </h4>
                     </div>
 
-                    <p className="text-xs text-slate-400 pl-7">{quest.description}</p>
+                    <p className="pl-7 text-xs leading-5 text-slate-400">{quest.description || '실제 행동을 기록하면 이 퀘스트의 진행도가 올라갑니다.'}</p>
 
                     {/* Progress bar */}
                     <div className="pl-7 pt-1 space-y-1">
                       <div className="flex justify-between text-[10px] font-mono text-slate-400">
                         <span>
-                          {quest.currentAmount} / {quest.targetAmount} {quest.unit}
+                          {quest.currentAmount} / {quest.targetAmount} {formatUnitLabel(quest.unit)}
                         </span>
                         <span>{progress}%</span>
                       </div>
@@ -161,12 +204,14 @@ export const QuestList: React.FC<QuestListProps> = ({
                         />
                       </div>
                     </div>
+                    </div>
                   </div>
 
                   {/* Reward & Action */}
                   <div className="flex sm:flex-col items-center sm:items-end justify-between gap-2 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-white/10 pl-7 sm:pl-0">
-                    <span className="text-xs font-mono font-bold text-orange-400">
-                      +{quest.expReward} EXP
+                    <span className="text-right text-xs font-mono font-bold text-orange-400">
+                      <span className="block">+{quest.expReward} EXP</span>
+                      <span className="mt-0.5 block text-[10px] font-semibold text-slate-400">{rewardStat?.nameKr || quest.statReward} EXP</span>
                     </span>
 
                     {quest.isClaimed ? (
@@ -241,8 +286,10 @@ export const QuestList: React.FC<QuestListProps> = ({
               피치 못할 사정으로 하루를 쉬어가도 연속 기록이 끊어지지 않도록 주 1회 스트릭 쉴드가 자동 지원됩니다.
             </p>
             <div className="flex items-center justify-between pt-1 text-[11px] font-mono text-slate-300 border-t border-white/10">
-              <span>보유 쉴드: 1회 이용 가능</span>
-              <span className="text-emerald-400 font-bold">READY</span>
+              <span>보유 쉴드: {streakShieldCount}회 이용 가능</span>
+              <span className={`font-bold ${streakShieldCount > 0 ? 'text-emerald-400' : 'text-slate-500'}`}>
+                {streakShieldCount > 0 ? 'READY' : 'USED'}
+              </span>
             </div>
           </div>
         </div>

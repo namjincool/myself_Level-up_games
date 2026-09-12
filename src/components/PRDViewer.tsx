@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   BookOpen,
   Check,
@@ -12,20 +12,44 @@ import {
 } from 'lucide-react';
 import { PRD_SECTIONS } from '../data/prdContent';
 
+const PRD_SEARCH_ALIASES: Record<string, string[]> = {
+  '경험치': ['exp', 'experience'],
+  '공식': ['exp', '수학 공식'],
+  '퀘스트': ['quest', 'daily', 'weekly', 'epic'],
+  '데이터 구조': ['data model', 'schema', '데이터 모델'],
+  '수익화': ['monetization', 'freemium', 'subscription'],
+  '백분위': ['percentile', 'ranking'],
+};
+
 export const PRDViewer: React.FC = () => {
   const [activeSectionId, setActiveSectionId] = useState<string>('executive-summary');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
-  const filteredSections = PRD_SECTIONS.filter(
-    (s) =>
-      s.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      s.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      s.category.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const normalizedSearchQuery = searchQuery.trim().toLowerCase();
+  const searchTerms = normalizedSearchQuery
+    ? [
+        normalizedSearchQuery,
+        ...Object.entries(PRD_SEARCH_ALIASES)
+          .filter(([alias]) => normalizedSearchQuery.includes(alias))
+          .flatMap(([, terms]) => terms),
+      ]
+    : [];
+
+  const filteredSections = PRD_SECTIONS.filter((s) => {
+    if (searchTerms.length === 0) return true;
+    const searchableText = `${s.title} ${s.content} ${s.category}`.toLowerCase();
+    return searchTerms.some((term) => searchableText.includes(term));
+  });
 
   const currentSection =
-    PRD_SECTIONS.find((s) => s.id === activeSectionId) || PRD_SECTIONS[0];
+    filteredSections.find((s) => s.id === activeSectionId) || filteredSections[0] || null;
+
+  useEffect(() => {
+    if (filteredSections.length > 0 && !filteredSections.some((section) => section.id === activeSectionId)) {
+      setActiveSectionId(filteredSections[0].id);
+    }
+  }, [activeSectionId, filteredSections, searchQuery]);
 
   const handleCopy = (text: string, id: string) => {
     navigator.clipboard.writeText(text);
@@ -241,7 +265,7 @@ export const PRDViewer: React.FC = () => {
             Table of Contents (23 Sections)
           </span>
 
-          {filteredSections.map((sec) => {
+          {filteredSections.length > 0 ? filteredSections.map((sec) => {
             const isActive = activeSectionId === sec.id;
             return (
               <button
@@ -266,10 +290,11 @@ export const PRDViewer: React.FC = () => {
                 </div>
               </button>
             );
-          })}
+          }) : null}
         </div>
 
         {/* Right Section Content Viewer */}
+        {currentSection ? (
         <div className="lg:col-span-8 bg-white/5 border border-white/10 rounded-2xl p-6 shadow-xl space-y-4 backdrop-blur-sm">
           <div className="flex items-start justify-between gap-3 border-b border-white/10 pb-4">
             <div>
@@ -308,6 +333,11 @@ export const PRDViewer: React.FC = () => {
             {renderMarkdownContent(currentSection.content)}
           </div>
         </div>
+        ) : (
+          <div className="lg:col-span-8 flex min-h-48 items-center justify-center rounded-2xl border border-dashed border-white/10 bg-white/5 p-6 text-center text-xs text-slate-400" role="status">
+            검색 결과가 없습니다. 다른 키워드로 다시 검색해 주세요.
+          </div>
+        )}
       </div>
     </div>
   );
